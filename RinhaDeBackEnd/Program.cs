@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using RinhaDeBackEnd.Domain.Middleware;
 using RinhaDeBackEnd.Endpoints;
 using RinhaDeBackEnd.Infra.Contexts;
@@ -12,6 +12,7 @@ namespace RinhaDeBackEnd
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
             var configuration = builder.Configuration;
             var ConnectionString = Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? builder.Configuration.GetConnectionString("DefaultConnection");
             var RedisConnectionString = Environment.GetEnvironmentVariable("REDIS_HOSTNAME") ?? builder.Configuration.GetConnectionString("RedisConnection");
@@ -25,9 +26,8 @@ namespace RinhaDeBackEnd
             });
 
             builder.Services.AddHostedService<DataBaseInitializer>();
-
+            builder.Services.AddRequestTimeouts(options => options.DefaultPolicy = new RequestTimeoutPolicy { Timeout = TimeSpan.FromSeconds(60) });
             var app = builder.Build();
-            //app.UseMiddleware<LimitRequestsMiddleware>();
             app.UseMiddleware<JsonExceptionMiddleware>();
             app.MapClientEndpoint();
 

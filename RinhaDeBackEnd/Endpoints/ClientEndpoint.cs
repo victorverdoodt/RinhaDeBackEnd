@@ -17,57 +17,69 @@ namespace RinhaDeBackEnd.Endpoints
 
             endpoints.MapPost("clientes/{id}/transacoes", async ([FromRoute] int id, [FromServices] AppDbContext context, [FromBody] TransactionDto dto) =>
             {
-
-                var validationResults = new List<ValidationResult>();
-                var validationContext = new ValidationContext(dto);
-
-                if (!Validator.TryValidateObject(dto, validationContext, validationResults, true))
+                using (var transaction = await context.Database.BeginTransactionAsync())
                 {
-                    return Results.UnprocessableEntity(validationResults.Select(vr => vr.ErrorMessage));
+                    try
+                    {
+                        if (id < 1 || id > 5)
+                            return Results.NotFound();
+
+                        var validationResults = new List<ValidationResult>();
+                        var validationContext = new ValidationContext(dto);
+
+                        if (!Validator.TryValidateObject(dto, validationContext, validationResults, true))
+                        {
+                            return Results.UnprocessableEntity(validationResults.Select(vr => vr.ErrorMessage));
+                        }
+
+                        var customer = await context.Customers
+                             .FromSqlInterpolated($"SELECT *, xmin FROM public.\"Customers\" WHERE \"Id\" = {id} FOR UPDATE LIMIT 1")
+                             .SingleAsync();
+
+                        if (customer == null) return Results.NotFound();
+
+                        if (dto.Tipo == 'd' && (customer.Balance - dto.Valor < -customer.Limit))
+                        {
+                            return Results.UnprocessableEntity();
+                        }
+
+                        var balance = customer.Balance;
+                        var limit = customer.Limit;
+
+                        var newTransaction = new Transaction
+                        {
+                            Value = dto.Tipo == 'c' ? dto.Valor : -dto.Valor,
+                            Type = dto.Tipo,
+                            Description = dto.Descricao
+                        };
+
+                        var transactions = customer.LastTransactions == null ? new List<Transaction>() : JsonSerializer.Deserialize<List<Transaction>>(customer.LastTransactions) ?? new List<Transaction>();
+                        transactions.Add(newTransaction);
+
+                        var orderedTransactions = transactions.OrderByDescending(x => x.TransactionDate).Take(10).ToList();
+
+                        var updatedTransactionsJson = JsonSerializer.Serialize(orderedTransactions);
+
+                        customer.LastTransactions = updatedTransactionsJson;
+                        customer.Balance += newTransaction.Value;
+                        context.Customers.Update(customer);
+                        await context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+
+                        return Results.Ok(new { Limite = limit, Saldo = balance });
+                    }
+                    catch (DbUpdateConcurrencyException ex)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.UnprocessableEntity();
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        Console.WriteLine(ex.Message);
+                        return Results.UnprocessableEntity(ex.Message);
+                    }
                 }
-
-                var baseQuery = context.Customers.AsNoTracking().Where(x => x.Id == id);
-
-
-                var customer = await baseQuery.Select(a => new { a.Id, a.Balance, a.Limit, a.LastTransactions }).FirstOrDefaultAsync();
-                if (customer == null) return Results.NotFound();
-
-                if (dto.Tipo == "d" && customer.Balance - dto.Valor < customer.Limit)
-                {
-                    return Results.UnprocessableEntity();
-                }
-
-                var balance = customer.Balance;
-                var limit = customer.Limit;
-
-
-                var newTransaction = new Transaction
-                {
-                    Value = dto.Tipo == "c" ? dto.Valor : -dto.Valor,
-                    Type = dto.Tipo[0],
-                    Description = dto.Descricao
-                };
-
-                var transactions = customer.LastTransactions == null ? new List<Transaction>() : JsonSerializer.Deserialize<List<Transaction>>(customer.LastTransactions) ?? new List<Transaction>();
-                transactions.Add(newTransaction);
-                if (transactions.Count > 10) transactions.RemoveAt(0);
-                var updatedTransactionsJson = JsonSerializer.Serialize(transactions);
-
-                try
-                {
-                    await baseQuery.ExecuteUpdateAsync(setters => setters
-                        .SetProperty(b => b.Balance, b => b.Balance + newTransaction.Value)
-                        .SetProperty(b => b.LastTransactions, b => updatedTransactionsJson)
-                   );
-
-                    return Results.Ok(new { Limite = limit, Saldo = balance });
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-
-                    return Results.Conflict();
-                }
-
             });
 
             endpoints.MapGet("clientes/{id}/extrato", async ([FromRoute] int id, [FromServices] AppDbContext context) =>
@@ -86,7 +98,6 @@ namespace RinhaDeBackEnd.Endpoints
 
                 if (customer == null) return Results.NotFound();
 
-                // Desserializa a coluna JSON para obter as últimas transações
                 var ultimasTransacoes = customer.LastTransactions == null ? new List<Transaction>() : JsonSerializer.Deserialize<List<Transaction>>(customer.LastTransactions) ?? new List<Transaction>();
 
                 var statement = new
