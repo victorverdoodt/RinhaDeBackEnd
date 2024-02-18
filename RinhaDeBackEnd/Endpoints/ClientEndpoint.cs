@@ -17,28 +17,27 @@ namespace RinhaDeBackEnd.Endpoints
 
             endpoints.MapPost("clientes/{id}/transacoes", async ([FromRoute] int id, [FromServices] AppDbContext context, [FromBody] TransactionDto dto) =>
             {
+                if (id < 1 || id > 5)
+                    return Results.NotFound();
+
+                var validationContext = new ValidationContext(dto, null, null);
+
+                if (!Validator.TryValidateObject(dto, validationContext, null, true))
+                {
+                    return Results.UnprocessableEntity();
+                }
+
                 using (var transaction = await context.Database.BeginTransactionAsync())
                 {
                     try
                     {
-                        if (id < 1 || id > 5)
-                            return Results.NotFound();
-
-                        var validationResults = new List<ValidationResult>();
-                        var validationContext = new ValidationContext(dto);
-
-                        if (!Validator.TryValidateObject(dto, validationContext, validationResults, true))
-                        {
-                            return Results.UnprocessableEntity(validationResults.Select(vr => vr.ErrorMessage));
-                        }
-
                         var customer = await context.Customers
-                             .FromSqlInterpolated($"SELECT *, xmin FROM public.\"Customers\" WHERE \"Id\" = {id} FOR UPDATE LIMIT 1")
+                             .FromSql($"SELECT *, xmin FROM public.\"Customers\" WHERE \"Id\" = {id} FOR UPDATE LIMIT 1")
                              .SingleAsync();
 
                         if (customer == null) return Results.NotFound();
 
-                        if (dto.Tipo == 'd' && (customer.Balance - dto.Valor < -customer.Limit))
+                        if (dto.Tipo == 'd' && (customer.Balance - (int)dto.Valor < -customer.Limit))
                         {
                             return Results.UnprocessableEntity();
                         }
@@ -76,14 +75,16 @@ namespace RinhaDeBackEnd.Endpoints
                     catch (Exception ex)
                     {
                         await transaction.RollbackAsync();
-                        Console.WriteLine(ex.Message);
-                        return Results.UnprocessableEntity(ex.Message);
+                        return Results.UnprocessableEntity();
                     }
                 }
             });
 
             endpoints.MapGet("clientes/{id}/extrato", async ([FromRoute] int id, [FromServices] AppDbContext context) =>
             {
+                if (id < 1 || id > 5)
+                    return Results.NotFound();
+
                 var customer = await context.Customers
                     .AsNoTracking()
                     .Where(c => c.Id == id)
@@ -98,7 +99,9 @@ namespace RinhaDeBackEnd.Endpoints
 
                 if (customer == null) return Results.NotFound();
 
-                var ultimasTransacoes = customer.LastTransactions == null ? new List<Transaction>() : JsonSerializer.Deserialize<List<Transaction>>(customer.LastTransactions) ?? new List<Transaction>();
+                var ultimasTransacoes = string.IsNullOrEmpty(customer.LastTransactions)
+                   ? new List<Transaction>()
+                   : JsonSerializer.Deserialize<List<Transaction>>(customer.LastTransactions) ?? new List<Transaction>();
 
                 var statement = new
                 {
