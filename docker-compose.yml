@@ -16,8 +16,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.45"
-          memory: "110MB"
+          cpus: "0.55"
+          memory: "160MB"
 
   rinhadebackend02:
     <<: *api 
@@ -54,8 +54,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.45"
-          memory: "300MB"
+          cpus: "0.25"
+          memory: "200MB"
 
 networks:
   default:
