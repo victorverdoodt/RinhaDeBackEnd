@@ -3,6 +3,7 @@ using RinhaDeBackEnd_AOT.Dto;
 using RinhaDeBackEnd_AOT.Endpoints;
 using RinhaDeBackEnd_AOT.Infra.Contexts;
 using RinhaDeBackEnd_AOT.Infra.Entities;
+using RinhaDeBackEnd_AOT.Middlewares;
 using System.Text.Json.Serialization;
 
 namespace RinhaDeBackEnd_AOT
@@ -27,16 +28,16 @@ namespace RinhaDeBackEnd_AOT
                 .UseModel(AppDbContextModel.Instance)
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             );
-
+            
             var app = builder.Build();
-
+            app.UseMiddleware<BadHttpRequestExceptionMiddleware>();
             app.MapClientEndpoint();
 
             app.Run();
         }
     }
 
-    [JsonSerializable(typeof(Customer[]))]
+    [JsonSerializable(typeof(Customer))]
     [JsonSerializable(typeof(Transaction[]))]
     [JsonSerializable(typeof(TransactionDto))]
     internal partial class AppJsonSerializerContext : JsonSerializerContext
