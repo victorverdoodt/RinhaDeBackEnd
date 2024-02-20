@@ -4,10 +4,10 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>fd3486d9-aff9-4d1f-8c1f-2ba118e091c4</ProjectGuid>
+    <ProjectGuid>c3d80633-b816-412b-80ef-7d12463a4625</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>rinhadebackend</DockerServiceName>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/todos</DockerServiceUrl>
+    <DockerServiceName>rinhadebackend-aot</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">
@@ -16,5 +16,6 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="nginx-conf\default.conf" />
+    <None Include="pg-conf\script.sql" />
   </ItemGroup>
 </Project>
