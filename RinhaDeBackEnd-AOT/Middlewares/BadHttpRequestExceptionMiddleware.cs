@@ -14,8 +14,9 @@ namespace RinhaDeBackEnd_AOT.Middlewares
             {
                 context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             }
         }

@@ -3,6 +3,6 @@
     public class StatementDto
     {
         public BalanceDto Saldo { get; set; }
-        public IEnumerable<TransactionDto> UltimasTransacoes { get; set; }
+        public List<TransactionDto> UltimasTransacoes { get; set; } = new List<TransactionDto>();
     }
 }

@@ -3,6 +3,7 @@ using RinhaDeBackEnd_AOT.Dto;
 using RinhaDeBackEnd_AOT.Infra.Contexts;
 using RinhaDeBackEnd_AOT.Infra.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace RinhaDeBackEnd_AOT.Endpoints
 {
@@ -40,33 +41,45 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                     var limit = customer.Limit;
                     var value = dto.Tipo == 'c' ? dto.Valor : dto.Valor * -1;
 
-                    var updated = await AppDbContext.TryUpdateBalance(context, id, value);
+
+                    var statement = customer.LastStatement == null ? new StatementDto() : JsonSerializer.Deserialize<StatementDto>(customer.LastStatement, AppJsonSerializerContext.Default.StatementDto) ?? new StatementDto();
+                    
+                    var newTransaction = new TransactionDto { 
+                        Descricao = dto.Descricao, 
+                        Tipo = dto.Tipo, 
+                        Valor = value, 
+                        Realizada_em = DateTime.Now  
+                    };
+
+                    statement.UltimasTransacoes.Add(newTransaction);
+
+                    var orderedTransactions = statement.UltimasTransacoes.OrderByDescending(x => x.Realizada_em).Take(10).ToList();
+
+                    var newStatemnt = new StatementDto
+                    {
+                        Saldo = new BalanceDto
+                        {
+                            Data_extrato = DateTime.Now,
+                            Limite = limit,
+                            Total = balance + value
+                        },
+                        UltimasTransacoes = orderedTransactions
+                    };
+
+                    var updatedTransactionsJson = JsonSerializer.Serialize(newStatemnt, AppJsonSerializerContext.Default.StatementDto);
+
+                    var updated = await AppDbContext.TryUpdateBalance(context, id, value, updatedTransactionsJson);
 
                     if (!updated)
                         return Results.UnprocessableEntity();
 
-                    var newTransaction = new Transaction
-                    {
-                        Value = value,
-                        Type = dto.Tipo,
-                        Description = dto.Descricao,
-                        CustomerId = id,
-                    };
-
-
-                    await context.Transactions.AddAsync(newTransaction);
-                    await context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     return Results.Ok(new RespondeDto { Limite = limit, Saldo = balance });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    await transaction.RollbackAsync();
-                    return Results.UnprocessableEntity();
-                }
-                catch (Exception)
-                {
+                    Console.WriteLine("Rollback");
                     await transaction.RollbackAsync();
                     return Results.UnprocessableEntity();
                 }
@@ -77,11 +90,22 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                 if (id < 1 || id > 5)
                     return Results.NotFound();
 
-                var statement = await AppDbContext.GetStatement(context, id);
+                var customer = await AppDbContext.GetCustomer(context, id);
 
-                if (statement == null) return Results.NotFound();
+                if (customer == null) return Results.NotFound();
 
-                return Results.Ok(statement);
+                if (customer.LastStatement is null)
+                {
+                    return Results.Ok(new StatementDto { 
+                        Saldo = new BalanceDto { 
+                            Data_extrato = DateTime.Now, 
+                            Limite = customer.Limit, 
+                            Total = customer.Balance}, 
+                        UltimasTransacoes = new List<TransactionDto>() 
+                    });
+                }
+
+                return Results.Content(customer.LastStatement.ToLower(), "application/json");
             }).DisableRequestTimeout();
 
             return group;

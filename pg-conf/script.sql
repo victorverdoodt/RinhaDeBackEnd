@@ -4,7 +4,7 @@ CREATE UNLOGGED TABLE "Customers" (
     "Name" VARCHAR(255) NOT NULL,
     "Balance" INT NOT NULL,
     "Limit" INT NOT NULL,
-    "LastTransactions" TEXT NULL,
+    "LastStatement" TEXT
 );
 
 -- Criação da tabela Transactions

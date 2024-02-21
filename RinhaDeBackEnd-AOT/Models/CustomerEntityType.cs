@@ -69,6 +69,29 @@ namespace RinhaDeBackEnd_AOT
                     storeTypeName: "integer"));
             balance.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
+            var lastStatement = runtimeEntityType.AddProperty(
+                "LastStatement",
+                typeof(string),
+                propertyInfo: typeof(Customer).GetProperty("LastStatement", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Customer).GetField("<LastStatement>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+            lastStatement.TypeMapping = StringTypeMapping.Default.Clone(
+                comparer: new ValueComparer<string>(
+                    (string v1, string v2) => v1 == v2,
+                    (string v) => v.GetHashCode(),
+                    (string v) => v),
+                keyComparer: new ValueComparer<string>(
+                    (string v1, string v2) => v1 == v2,
+                    (string v) => v.GetHashCode(),
+                    (string v) => v),
+                providerValueComparer: new ValueComparer<string>(
+                    (string v1, string v2) => v1 == v2,
+                    (string v) => v.GetHashCode(),
+                    (string v) => v),
+                mappingInfo: new RelationalTypeMappingInfo(
+                    dbType: System.Data.DbType.String));
+            lastStatement.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
             var limit = runtimeEntityType.AddProperty(
                 "Limit",
                 typeof(int),

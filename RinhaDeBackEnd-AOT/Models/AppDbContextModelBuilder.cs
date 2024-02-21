@@ -44,6 +44,11 @@ namespace RinhaDeBackEnd_AOT
             rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase.Columns.Add("Balance", balanceColumnBase);
             var idColumnBase = new ColumnBase<ColumnMappingBase>("Id", "integer", rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase);
             rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase.Columns.Add("Id", idColumnBase);
+            var lastStatementColumnBase = new ColumnBase<ColumnMappingBase>("LastStatement", "text", rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase)
+            {
+                IsNullable = true
+            };
+            rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase.Columns.Add("LastStatement", lastStatementColumnBase);
             var limitColumnBase = new ColumnBase<ColumnMappingBase>("Limit", "integer", rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase);
             rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase.Columns.Add("Limit", limitColumnBase);
             var nameColumnBase = new ColumnBase<ColumnMappingBase>("Name", "text", rinhaDeBackEnd_AOTInfraEntitiesCustomerTableBase);
@@ -54,6 +59,7 @@ namespace RinhaDeBackEnd_AOT
             defaultTableMappings.Add(rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)idColumnBase, customer.FindProperty("Id")!, rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)balanceColumnBase, customer.FindProperty("Balance")!, rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)lastStatementColumnBase, customer.FindProperty("LastStatement")!, rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)limitColumnBase, customer.FindProperty("Limit")!, rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)nameColumnBase, customer.FindProperty("Name")!, rinhaDeBackEnd_AOTInfraEntitiesCustomerMappingBase);
 
@@ -65,6 +71,11 @@ namespace RinhaDeBackEnd_AOT
             idColumn.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
             var balanceColumn = new Column("Balance", "integer", customersTable);
             customersTable.Columns.Add("Balance", balanceColumn);
+            var lastStatementColumn = new Column("LastStatement", "text", customersTable)
+            {
+                IsNullable = true
+            };
+            customersTable.Columns.Add("LastStatement", lastStatementColumn);
             var limitColumn = new Column("Limit", "integer", customersTable);
             customersTable.Columns.Add("Limit", limitColumn);
             var nameColumn = new Column("Name", "text", customersTable);
@@ -83,6 +94,7 @@ namespace RinhaDeBackEnd_AOT
             tableMappings.Add(customersTableMapping);
             RelationalModel.CreateColumnMapping(idColumn, customer.FindProperty("Id")!, customersTableMapping);
             RelationalModel.CreateColumnMapping(balanceColumn, customer.FindProperty("Balance")!, customersTableMapping);
+            RelationalModel.CreateColumnMapping(lastStatementColumn, customer.FindProperty("LastStatement")!, customersTableMapping);
             RelationalModel.CreateColumnMapping(limitColumn, customer.FindProperty("Limit")!, customersTableMapping);
             RelationalModel.CreateColumnMapping(nameColumn, customer.FindProperty("Name")!, customersTableMapping);
 
