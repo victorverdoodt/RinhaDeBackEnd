@@ -8,7 +8,7 @@
         public char Type { get; set; }
         public string Description { get; set; }
         public DateTime TransactionDate { get; set; }
-
+        public int Valid {  get; set; }
         public Customer Customer { get; set; }
     }
 }

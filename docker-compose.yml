@@ -9,12 +9,12 @@ services:
       context: .
       dockerfile: RinhaDeBackEnd-AOT/Dockerfile
     environment:
-      - DB_HOSTNAME=Host=db;Database=rinha;Username=admin;Password=123;No Reset On Close=true;Max Auto Prepare=10;Auto Prepare Min Usages=1;Pooling=true;Maximum Pool Size=30
+      - DB_HOSTNAME=Host=db;Database=rinha;Username=admin;Password=123;No Reset On Close=true;Max Auto Prepare=10;Auto Prepare Min Usages=1;Pooling=true;Maximum Pool Size=10
     deploy:
       resources:
         limits:
-          cpus: "0.42"
-          memory: "165MB"
+          cpus: "0.35"
+          memory: "132MB"
 
   rinhadebackend-aot02:
     <<: *api 
@@ -34,12 +34,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.16"
+          cpus: "0.2"
           memory: "20MB"
 
   db:
     image: postgres:latest
     hostname: db
+    command: postgres -c max_connections=300
     environment:
       - POSTGRES_PASSWORD=123
       - POSTGRES_USER=admin
@@ -51,8 +52,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "200MB"
+          cpus: "0.6"
+          memory: "270MB"
 
 networks:
   default:

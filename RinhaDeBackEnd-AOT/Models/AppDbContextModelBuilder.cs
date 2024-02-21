@@ -101,6 +101,8 @@ namespace RinhaDeBackEnd_AOT
             rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("TransactionDate", transactionDateColumnBase);
             var typeColumnBase = new ColumnBase<ColumnMappingBase>("Type", "character(1)", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
             rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Type", typeColumnBase);
+            var validColumnBase = new ColumnBase<ColumnMappingBase>("Valid", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
+            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Valid", validColumnBase);
             var valueColumnBase = new ColumnBase<ColumnMappingBase>("Value", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
             rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Value", valueColumnBase);
             relationalModel.DefaultTables.Add("RinhaDeBackEnd_AOT.Infra.Entities.Transaction", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
@@ -112,6 +114,7 @@ namespace RinhaDeBackEnd_AOT
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)descriptionColumnBase, transaction.FindProperty("Description")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)transactionDateColumnBase, transaction.FindProperty("TransactionDate")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)typeColumnBase, transaction.FindProperty("Type")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)validColumnBase, transaction.FindProperty("Valid")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)valueColumnBase, transaction.FindProperty("Value")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
 
             var tableMappings0 = new List<TableMapping>();
@@ -128,6 +131,8 @@ namespace RinhaDeBackEnd_AOT
             transactionsTable.Columns.Add("TransactionDate", transactionDateColumn);
             var typeColumn = new Column("Type", "character(1)", transactionsTable);
             transactionsTable.Columns.Add("Type", typeColumn);
+            var validColumn = new Column("Valid", "integer", transactionsTable);
+            transactionsTable.Columns.Add("Valid", validColumn);
             var valueColumn = new Column("Value", "integer", transactionsTable);
             transactionsTable.Columns.Add("Value", valueColumn);
             var pK_Transactions = new UniqueConstraint("PK_Transactions", transactionsTable, new[] { idColumn0 });
@@ -155,6 +160,7 @@ namespace RinhaDeBackEnd_AOT
             RelationalModel.CreateColumnMapping(descriptionColumn, transaction.FindProperty("Description")!, transactionsTableMapping);
             RelationalModel.CreateColumnMapping(transactionDateColumn, transaction.FindProperty("TransactionDate")!, transactionsTableMapping);
             RelationalModel.CreateColumnMapping(typeColumn, transaction.FindProperty("Type")!, transactionsTableMapping);
+            RelationalModel.CreateColumnMapping(validColumn, transaction.FindProperty("Valid")!, transactionsTableMapping);
             RelationalModel.CreateColumnMapping(valueColumn, transaction.FindProperty("Value")!, transactionsTableMapping);
             var fK_Transactions_Customers_CustomerId = new ForeignKeyConstraint(
                 "FK_Transactions_Customers_CustomerId", transactionsTable, customersTable,

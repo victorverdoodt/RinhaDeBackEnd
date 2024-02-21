@@ -1,4 +1,6 @@
-﻿namespace RinhaDeBackEnd_AOT.Middlewares
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace RinhaDeBackEnd_AOT.Middlewares
 {
     public class BadHttpRequestExceptionMiddleware(RequestDelegate next)
     {
@@ -9,6 +11,10 @@
                 await next(context);
             }
             catch (BadHttpRequestException)
+            {
+                context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            }
+            catch (Exception)
             {
                 context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             }

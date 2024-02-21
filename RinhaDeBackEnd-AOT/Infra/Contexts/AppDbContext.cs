@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RinhaDeBackEnd_AOT.Dto;
 using RinhaDeBackEnd_AOT.Infra.Entities;
 
 namespace RinhaDeBackEnd_AOT.Infra.Contexts
@@ -11,33 +12,44 @@ namespace RinhaDeBackEnd_AOT.Infra.Contexts
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
 
-        public static readonly Func<AppDbContext, int, IAsyncEnumerable<dynamic>> GetExtrato
+        public static readonly Func<AppDbContext, int, Task<StatementDto?>> GetStatement
             = EF.CompileAsyncQuery(
                 (AppDbContext context, int id) => context.Customers
                     .AsNoTracking()
                     .Where(c => c.Id == id)
                     .Include(x => x.LastTransactions)
-                    .Select(c => new
+                    .Select(c => new StatementDto()
                     {
-                        Saldo = new
+                        Saldo = new BalanceDto()
                         {
                             Total = c.Balance,
                             Data_extrato = DateTime.UtcNow,
                             Limite = c.Limit
                         },
-                        UltimasTransacoes = c.LastTransactions.OrderByDescending(x => x.TransactionDate).Take(10).Select(t => new
+                        UltimasTransacoes = c.LastTransactions.OrderByDescending(x => x.TransactionDate).Take(10).Select(t => new TransactionDto()
                         {
                             Valor = t.Value,
                             Tipo = t.Type,
                             Descricao = t.Description,
                             Realizada_em = t.TransactionDate
                         })
-                    }));
+                    }).SingleOrDefault());
 
-        public static readonly Func<AppDbContext, int, Task<Cliente?>> GetCliente
-            = EF.CompileAsyncQuery(
-                (AppDbContext context, int id) => context.Clientes
-                    .AsNoTracking()
-                    .SingleOrDefault(x => x.Id == id));
+
+        public static readonly Func<AppDbContext, int, Task<CustomerInfoDto?>> GetCustomer
+          = EF.CompileAsyncQuery(
+              (AppDbContext context, int id) => context.Customers
+                  .AsNoTracking()
+                  .Select(x=> new CustomerInfoDto { Id = x.Id, Balance = x.Balance, Limit = x.Limit })
+                  .SingleOrDefault(x => x.Id == id));
+
+        public static async Task<bool> TryUpdateBalance(AppDbContext context, int id, int value)
+        {
+            var result = await context.Customers
+                .Where(x => x.Id == id && (x.Balance + value >= x.Limit * -1 || value > 0))
+                .ExecuteUpdateAsync(x =>
+                    x.SetProperty(e => e.Balance, e => e.Balance + value));
+            return result > 0;
+        }
     }
 }

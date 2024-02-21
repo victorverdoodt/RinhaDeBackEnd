@@ -19,6 +19,8 @@ namespace RinhaDeBackEnd_AOT
                 options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
             });
 
+            builder.Services.Configure<RouteHandlerOptions>(o => { o.ThrowOnBadRequest = true; });
+
             var ConnectionString = Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
             var configuration = builder.Configuration;
@@ -26,7 +28,7 @@ namespace RinhaDeBackEnd_AOT
                 options.UseNpgsql(ConnectionString)
                 .EnableThreadSafetyChecks(false)
                 .UseModel(AppDbContextModel.Instance)
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking), 512
             );
             
             var app = builder.Build();
@@ -38,8 +40,12 @@ namespace RinhaDeBackEnd_AOT
     }
 
     [JsonSerializable(typeof(Customer))]
-    [JsonSerializable(typeof(Transaction[]))]
+    [JsonSerializable(typeof(Transaction))]
     [JsonSerializable(typeof(TransactionDto))]
+    [JsonSerializable(typeof(StatementDto))]
+    [JsonSerializable(typeof(BalanceDto))]
+    [JsonSerializable(typeof(RespondeDto))]
+    [JsonSerializable(typeof(CustomerInfoDto))]
     internal partial class AppJsonSerializerContext : JsonSerializerContext
     {
 

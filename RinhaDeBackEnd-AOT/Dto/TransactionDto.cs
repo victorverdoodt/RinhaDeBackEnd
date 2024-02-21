@@ -16,5 +16,7 @@ namespace RinhaDeBackEnd_AOT.Dto
         [Required(AllowEmptyStrings = false)]
         [Description]
         public string Descricao { get; set; }
+
+        public DateTime? Realizada_em { get; set; }
     }
 }

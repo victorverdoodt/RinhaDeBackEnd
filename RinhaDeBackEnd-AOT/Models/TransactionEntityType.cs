@@ -138,6 +138,29 @@ namespace RinhaDeBackEnd_AOT
                     storeTypeName: "character(1)"));
             type.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
+            var valid = runtimeEntityType.AddProperty(
+                "Valid",
+                typeof(int),
+                propertyInfo: typeof(Transaction).GetProperty("Valid", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Transaction).GetField("<Valid>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: 0);
+            valid.TypeMapping = IntTypeMapping.Default.Clone(
+                comparer: new ValueComparer<int>(
+                    (int v1, int v2) => v1 == v2,
+                    (int v) => v,
+                    (int v) => v),
+                keyComparer: new ValueComparer<int>(
+                    (int v1, int v2) => v1 == v2,
+                    (int v) => v,
+                    (int v) => v),
+                providerValueComparer: new ValueComparer<int>(
+                    (int v1, int v2) => v1 == v2,
+                    (int v) => v,
+                    (int v) => v),
+                mappingInfo: new RelationalTypeMappingInfo(
+                    storeTypeName: "integer"));
+            valid.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
             var value = runtimeEntityType.AddProperty(
                 "Value",
                 typeof(int),

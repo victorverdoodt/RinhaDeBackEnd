@@ -24,85 +24,65 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                     return Results.UnprocessableEntity();
                 }
 
-                using (var transaction = await context.Database.BeginTransactionAsync())
+                using var transaction = await context.Database.BeginTransactionAsync();
+                try
                 {
-                    try
+                    var customer = await AppDbContext.GetCustomer(context, id);
+
+                    if (customer == null) return Results.NotFound();
+
+                    if (dto.Tipo == 'd' && (customer.Balance - (int)dto.Valor < -customer.Limit))
                     {
-                        var customer = await context.Customers
-                             .FromSql($"SELECT * FROM public.\"Customers\" WHERE \"Id\" = {id} FOR UPDATE LIMIT 1")
-                             .SingleAsync();
-
-                        if (customer == null) return Results.NotFound();
-
-                        if (dto.Tipo == 'd' && (customer.Balance - (int)dto.Valor < -customer.Limit))
-                        {
-                            return Results.UnprocessableEntity();
-                        }
-
-                        var balance = customer.Balance;
-                        var limit = customer.Limit;
-                        var value = dto.Tipo == 'c' ? dto.Valor : dto.Valor * -1;
-
-                        var newTransaction = new Transaction
-                        {
-                            Value = value,
-                            Type = dto.Tipo,
-                            Description = dto.Descricao,
-                            CustomerId = customer.Id,
-                        };
-
-                        customer.Balance += value;
-                        context.Customers.Update(customer);
-                        await context.Transactions.AddAsync(newTransaction);
-                        await context.SaveChangesAsync();
-                        await transaction.CommitAsync();
-
-                        return Results.Ok(new { Limite = limit, Saldo = balance });
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        await transaction.RollbackAsync();
                         return Results.UnprocessableEntity();
                     }
-                    catch (Exception)
-                    {
-                        await transaction.RollbackAsync();
+
+                    var balance = customer.Balance;
+                    var limit = customer.Limit;
+                    var value = dto.Tipo == 'c' ? dto.Valor : dto.Valor * -1;
+
+                    var updated = await AppDbContext.TryUpdateBalance(context, id, value);
+
+                    if (!updated)
                         return Results.UnprocessableEntity();
-                    }
+
+                    var newTransaction = new Transaction
+                    {
+                        Value = value,
+                        Type = dto.Tipo,
+                        Description = dto.Descricao,
+                        CustomerId = id,
+                    };
+
+
+                    await context.Transactions.AddAsync(newTransaction);
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Results.Ok(new RespondeDto { Limite = limit, Saldo = balance });
                 }
-            });
+                catch (DbUpdateConcurrencyException)
+                {
+                    await transaction.RollbackAsync();
+                    return Results.UnprocessableEntity();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    return Results.UnprocessableEntity();
+                }
+            }).DisableRequestTimeout();
 
             endpoints.MapGet("clientes/{id}/extrato", async (int id, AppDbContext context) =>
             {
                 if (id < 1 || id > 5)
                     return Results.NotFound();
 
-                var customer = await context.Customers
-                    .AsNoTracking()
-                    .Where(c => c.Id == id)
-                    .Include(x=> x.LastTransactions)
-                    .Select(c => new
-                    {
-                        Saldo = new
-                        {
-                            Total = c.Balance,
-                            Data_extrato = DateTime.UtcNow,
-                            Limite = c.Limit
-                        },
-                        UltimasTransacoes = c.LastTransactions.OrderByDescending(x => x.TransactionDate).Take(10).Select(t => new
-                        {
-                            Valor = t.Value,
-                            Tipo = t.Type,
-                            Descricao = t.Description,
-                            Realizada_em = t.TransactionDate
-                        })
-                    })
-                    .SingleOrDefaultAsync();
+                var statement = await AppDbContext.GetStatement(context, id);
 
-                if (customer == null) return Results.NotFound();
+                if (statement == null) return Results.NotFound();
 
-                return Results.Ok(customer);
-            });
+                return Results.Ok(statement);
+            }).DisableRequestTimeout();
 
             return group;
         }

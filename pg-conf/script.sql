@@ -14,11 +14,11 @@ CREATE TABLE "Transactions" (
     "Description" TEXT NOT NULL,
     "TransactionDate" TIMESTAMP NOT NULL,
     "CustomerId" INT NOT NULL,
+    "Valid" INT NOT NULL,
     FOREIGN KEY ("CustomerId") REFERENCES "Customers"("Id")
 );
 
--- Criação de um índice ordenado na coluna TransactionDate da tabela Transactions
-CREATE INDEX idx_transactiondate_id ON "Transactions" ("TransactionDate", "CustomerId");
+CREATE INDEX idx_transactiondate_id ON "Transactions" ("CustomerId", "TransactionDate");
 
 -- Inserção de dados na tabela Customers
 INSERT INTO "Customers" ("Name", "Balance", "Limit")
