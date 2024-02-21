@@ -28,7 +28,10 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                 using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    var customer = await AppDbContext.GetCustomer(context, id);
+                    var customer = await context.Customers
+                      .FromSqlInterpolated($"SELECT * FROM public.\"Customers\" WHERE \"Id\" = {id} FOR UPDATE")
+                      .Select(x => new CustomerInfoDto { Id = x.Id, Balance = x.Balance, Limit = x.Limit, LastStatement = x.LastStatement })
+                      .SingleOrDefaultAsync();
 
                     if (customer == null) return Results.NotFound();
 
