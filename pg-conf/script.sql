@@ -1,13 +1,14 @@
 -- Criação da tabela Customers
-CREATE TABLE "Customers" (
+CREATE UNLOGGED TABLE "Customers" (
     "Id" SERIAL PRIMARY KEY,
     "Name" VARCHAR(255) NOT NULL,
     "Balance" INT NOT NULL,
-    "Limit" INT NOT NULL
+    "Limit" INT NOT NULL,
+    "LastTransactions" TEXT NULL,
 );
 
 -- Criação da tabela Transactions
-CREATE TABLE "Transactions" (
+CREATE UNLOGGED TABLE "Transactions" (
     "Id" SERIAL PRIMARY KEY,
     "Value" INT NOT NULL,
     "Type" CHAR NOT NULL,

@@ -28,7 +28,7 @@ namespace RinhaDeBackEnd_AOT
                 options.UseNpgsql(ConnectionString)
                 .EnableThreadSafetyChecks(false)
                 .UseModel(AppDbContextModel.Instance)
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking), 512
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             );
             
             var app = builder.Build();
