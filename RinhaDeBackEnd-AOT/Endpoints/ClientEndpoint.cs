@@ -38,7 +38,6 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                     var statement = DeserializeStatement(customer.LastStatement);
                     statement.Saldo.Total = balance+value;
                     statement.Saldo.Limite = limit;
-                    dto.Valor = value;
                     statement.Ultimas_transacoes.Add(dto);
                     statement.Ultimas_transacoes = [.. statement.Ultimas_transacoes.OrderByDescending(x => x.Realizada_em)];
                     if (statement.Ultimas_transacoes.Count > 10)
