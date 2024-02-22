@@ -4,7 +4,7 @@ services:
   rinhadebackend-aot:
     &api
     hostname: api01
-    image: ${DOCKER_REGISTRY-}rinhadebackendaot
+    image: vyctor17/rinhadebackendaot
     build:
       context: .
       dockerfile: RinhaDeBackEnd-AOT/Dockerfile

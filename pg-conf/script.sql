@@ -7,20 +7,6 @@ CREATE UNLOGGED TABLE "Customers" (
     "LastStatement" TEXT
 );
 
--- Criação da tabela Transactions
-CREATE UNLOGGED TABLE "Transactions" (
-    "Id" SERIAL PRIMARY KEY,
-    "Value" INT NOT NULL,
-    "Type" CHAR NOT NULL,
-    "Description" TEXT NOT NULL,
-    "TransactionDate" TIMESTAMP NOT NULL,
-    "CustomerId" INT NOT NULL,
-    "Valid" INT NOT NULL,
-    FOREIGN KEY ("CustomerId") REFERENCES "Customers"("Id")
-);
-
-CREATE INDEX idx_transactiondate_id ON "Transactions" ("CustomerId", "TransactionDate");
-
 -- Inserção de dados na tabela Customers
 INSERT INTO "Customers" ("Name", "Balance", "Limit")
 VALUES
