@@ -10,7 +10,7 @@ using RinhaDeBackEnd_AOT.Infra.Entities;
 #pragma warning disable 219, 612, 618
 #nullable disable
 
-namespace RinhaDeBackEnd_AOT
+namespace RinhaDeBackEnd_AOT.Models
 {
     internal partial class CustomerEntityType
     {

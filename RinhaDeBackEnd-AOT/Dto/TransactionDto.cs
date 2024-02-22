@@ -17,6 +17,6 @@ namespace RinhaDeBackEnd_AOT.Dto
         [Description]
         public string Descricao { get; set; }
 
-        public DateTime? Realizada_em { get; set; }
+        public DateTime? Realizada_em { get; set; } = DateTime.Now;
     }
 }

@@ -4,6 +4,7 @@ using RinhaDeBackEnd_AOT.Endpoints;
 using RinhaDeBackEnd_AOT.Infra.Contexts;
 using RinhaDeBackEnd_AOT.Infra.Entities;
 using RinhaDeBackEnd_AOT.Middlewares;
+using RinhaDeBackEnd_AOT.Models;
 using System.Text.Json.Serialization;
 
 namespace RinhaDeBackEnd_AOT
@@ -40,7 +41,6 @@ namespace RinhaDeBackEnd_AOT
     }
 
     [JsonSerializable(typeof(Customer))]
-    [JsonSerializable(typeof(Transaction))]
     [JsonSerializable(typeof(TransactionDto))]
     [JsonSerializable(typeof(StatementDto))]
     [JsonSerializable(typeof(BalanceDto))]

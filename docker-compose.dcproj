@@ -16,6 +16,7 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="nginx-conf\default.conf" />
+    <None Include="pg-conf\postgresql.conf" />
     <None Include="pg-conf\script.sql" />
   </ItemGroup>
 </Project>

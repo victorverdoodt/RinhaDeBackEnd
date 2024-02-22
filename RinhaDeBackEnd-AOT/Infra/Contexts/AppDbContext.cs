@@ -7,7 +7,6 @@ namespace RinhaDeBackEnd_AOT.Infra.Contexts
     public class AppDbContext : DbContext
     {
         public DbSet<Customer> Customers => Set<Customer>();
-        public DbSet<Transaction> Transactions => Set<Transaction>();
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

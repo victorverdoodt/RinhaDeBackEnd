@@ -5,25 +5,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable 219, 612, 618
 #nullable disable
 
-namespace RinhaDeBackEnd_AOT
+namespace RinhaDeBackEnd_AOT.Models
 {
     public partial class AppDbContextModel
     {
         partial void Initialize()
         {
             var customer = CustomerEntityType.Create(this);
-            var transaction = TransactionEntityType.Create(this);
-
-            TransactionEntityType.CreateForeignKey1(transaction, customer);
 
             CustomerEntityType.CreateAnnotations(customer);
-            TransactionEntityType.CreateAnnotations(transaction);
 
             AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
             AddAnnotation("ProductVersion", "8.0.2");
@@ -97,96 +92,6 @@ namespace RinhaDeBackEnd_AOT
             RelationalModel.CreateColumnMapping(lastStatementColumn, customer.FindProperty("LastStatement")!, customersTableMapping);
             RelationalModel.CreateColumnMapping(limitColumn, customer.FindProperty("Limit")!, customersTableMapping);
             RelationalModel.CreateColumnMapping(nameColumn, customer.FindProperty("Name")!, customersTableMapping);
-
-            var transaction = FindEntityType("RinhaDeBackEnd_AOT.Infra.Entities.Transaction")!;
-
-            var defaultTableMappings0 = new List<TableMappingBase<ColumnMappingBase>>();
-            transaction.SetRuntimeAnnotation("Relational:DefaultMappings", defaultTableMappings0);
-            var rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase = new TableBase("RinhaDeBackEnd_AOT.Infra.Entities.Transaction", null, relationalModel);
-            var customerIdColumnBase = new ColumnBase<ColumnMappingBase>("CustomerId", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("CustomerId", customerIdColumnBase);
-            var descriptionColumnBase = new ColumnBase<ColumnMappingBase>("Description", "text", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Description", descriptionColumnBase);
-            var idColumnBase0 = new ColumnBase<ColumnMappingBase>("Id", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Id", idColumnBase0);
-            var transactionDateColumnBase = new ColumnBase<ColumnMappingBase>("TransactionDate", "timestamp with time zone", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("TransactionDate", transactionDateColumnBase);
-            var typeColumnBase = new ColumnBase<ColumnMappingBase>("Type", "character(1)", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Type", typeColumnBase);
-            var validColumnBase = new ColumnBase<ColumnMappingBase>("Valid", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Valid", validColumnBase);
-            var valueColumnBase = new ColumnBase<ColumnMappingBase>("Value", "integer", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.Columns.Add("Value", valueColumnBase);
-            relationalModel.DefaultTables.Add("RinhaDeBackEnd_AOT.Infra.Entities.Transaction", rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase);
-            var rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase = new TableMappingBase<ColumnMappingBase>(transaction, rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase, true);
-            rinhaDeBackEnd_AOTInfraEntitiesTransactionTableBase.AddTypeMapping(rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase, false);
-            defaultTableMappings0.Add(rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)idColumnBase0, transaction.FindProperty("Id")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)customerIdColumnBase, transaction.FindProperty("CustomerId")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)descriptionColumnBase, transaction.FindProperty("Description")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)transactionDateColumnBase, transaction.FindProperty("TransactionDate")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)typeColumnBase, transaction.FindProperty("Type")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)validColumnBase, transaction.FindProperty("Valid")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)valueColumnBase, transaction.FindProperty("Value")!, rinhaDeBackEnd_AOTInfraEntitiesTransactionMappingBase);
-
-            var tableMappings0 = new List<TableMapping>();
-            transaction.SetRuntimeAnnotation("Relational:TableMappings", tableMappings0);
-            var transactionsTable = new Table("Transactions", null, relationalModel);
-            var idColumn0 = new Column("Id", "integer", transactionsTable);
-            transactionsTable.Columns.Add("Id", idColumn0);
-            idColumn0.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-            var customerIdColumn = new Column("CustomerId", "integer", transactionsTable);
-            transactionsTable.Columns.Add("CustomerId", customerIdColumn);
-            var descriptionColumn = new Column("Description", "text", transactionsTable);
-            transactionsTable.Columns.Add("Description", descriptionColumn);
-            var transactionDateColumn = new Column("TransactionDate", "timestamp with time zone", transactionsTable);
-            transactionsTable.Columns.Add("TransactionDate", transactionDateColumn);
-            var typeColumn = new Column("Type", "character(1)", transactionsTable);
-            transactionsTable.Columns.Add("Type", typeColumn);
-            var validColumn = new Column("Valid", "integer", transactionsTable);
-            transactionsTable.Columns.Add("Valid", validColumn);
-            var valueColumn = new Column("Value", "integer", transactionsTable);
-            transactionsTable.Columns.Add("Value", valueColumn);
-            var pK_Transactions = new UniqueConstraint("PK_Transactions", transactionsTable, new[] { idColumn0 });
-            transactionsTable.PrimaryKey = pK_Transactions;
-            var pK_TransactionsUc = RelationalModel.GetKey(this,
-                "RinhaDeBackEnd_AOT.Infra.Entities.Transaction",
-                new[] { "Id" });
-            pK_Transactions.MappedKeys.Add(pK_TransactionsUc);
-            RelationalModel.GetOrCreateUniqueConstraints(pK_TransactionsUc).Add(pK_Transactions);
-            transactionsTable.UniqueConstraints.Add("PK_Transactions", pK_Transactions);
-            var iX_Transactions_CustomerId = new TableIndex(
-            "IX_Transactions_CustomerId", transactionsTable, new[] { customerIdColumn }, false);
-            var iX_Transactions_CustomerIdIx = RelationalModel.GetIndex(this,
-                "RinhaDeBackEnd_AOT.Infra.Entities.Transaction",
-                new[] { "CustomerId" });
-            iX_Transactions_CustomerId.MappedIndexes.Add(iX_Transactions_CustomerIdIx);
-            RelationalModel.GetOrCreateTableIndexes(iX_Transactions_CustomerIdIx).Add(iX_Transactions_CustomerId);
-            transactionsTable.Indexes.Add("IX_Transactions_CustomerId", iX_Transactions_CustomerId);
-            relationalModel.Tables.Add(("Transactions", null), transactionsTable);
-            var transactionsTableMapping = new TableMapping(transaction, transactionsTable, true);
-            transactionsTable.AddTypeMapping(transactionsTableMapping, false);
-            tableMappings0.Add(transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(idColumn0, transaction.FindProperty("Id")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(customerIdColumn, transaction.FindProperty("CustomerId")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(descriptionColumn, transaction.FindProperty("Description")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(transactionDateColumn, transaction.FindProperty("TransactionDate")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(typeColumn, transaction.FindProperty("Type")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(validColumn, transaction.FindProperty("Valid")!, transactionsTableMapping);
-            RelationalModel.CreateColumnMapping(valueColumn, transaction.FindProperty("Value")!, transactionsTableMapping);
-            var fK_Transactions_Customers_CustomerId = new ForeignKeyConstraint(
-                "FK_Transactions_Customers_CustomerId", transactionsTable, customersTable,
-                new[] { customerIdColumn },
-                customersTable.FindUniqueConstraint("PK_Customers")!, ReferentialAction.Cascade);
-            var fK_Transactions_Customers_CustomerIdFk = RelationalModel.GetForeignKey(this,
-                "RinhaDeBackEnd_AOT.Infra.Entities.Transaction",
-                new[] { "CustomerId" },
-                "RinhaDeBackEnd_AOT.Infra.Entities.Customer",
-                new[] { "Id" });
-            fK_Transactions_Customers_CustomerId.MappedForeignKeys.Add(fK_Transactions_Customers_CustomerIdFk);
-            RelationalModel.GetOrCreateForeignKeyConstraints(fK_Transactions_Customers_CustomerIdFk).Add(fK_Transactions_Customers_CustomerId);
-            transactionsTable.ForeignKeyConstraints.Add(fK_Transactions_Customers_CustomerId);
-            customersTable.ReferencingForeignKeyConstraints.Add(fK_Transactions_Customers_CustomerId);
             return relationalModel.MakeReadOnly();
         }
     }

@@ -15,15 +15,8 @@ namespace RinhaDeBackEnd_AOT.Endpoints
 
             endpoints.MapPost("clientes/{id}/transacoes", async (int id, AppDbContext context, TransactionDto dto) =>
             {
-                if (id < 1 || id > 5)
-                    return Results.NotFound();
-
-                var validationContext = new ValidationContext(dto, null, null);
-
-                if (!Validator.TryValidateObject(dto, validationContext, null, true))
-                {
+                if (id < 1 || id > 5 || !Validator.TryValidateObject(dto, new ValidationContext(dto), null, true))
                     return Results.UnprocessableEntity();
-                }
 
                 using var transaction = await context.Database.BeginTransactionAsync();
                 try
@@ -35,43 +28,24 @@ namespace RinhaDeBackEnd_AOT.Endpoints
 
                     if (customer == null) return Results.NotFound();
 
-                    if (dto.Tipo == 'd' && (customer.Balance - (int)dto.Valor < -customer.Limit))
-                    {
+                    if (dto.Tipo == 'd' && customer.Balance - (int)dto.Valor < -customer.Limit)
                         return Results.UnprocessableEntity();
-                    }
 
                     var balance = customer.Balance;
                     var limit = customer.Limit;
                     var value = dto.Tipo == 'c' ? dto.Valor : dto.Valor * -1;
 
+                    var statement = DeserializeStatement(customer.LastStatement);
+                    statement.Saldo.Total = balance+value;
+                    statement.Saldo.Limite = limit;
+                    dto.Valor = value;
+                    statement.Ultimas_transacoes.Add(dto);
+                    statement.Ultimas_transacoes = [.. statement.Ultimas_transacoes.OrderByDescending(x => x.Realizada_em)];
+                    if (statement.Ultimas_transacoes.Count > 10)
+                        statement.Ultimas_transacoes.RemoveAt(10);
 
-                    var statement = customer.LastStatement == null ? new StatementDto() : JsonSerializer.Deserialize<StatementDto>(customer.LastStatement, AppJsonSerializerContext.Default.StatementDto) ?? new StatementDto();
-                    
-                    var newTransaction = new TransactionDto { 
-                        Descricao = dto.Descricao, 
-                        Tipo = dto.Tipo, 
-                        Valor = value, 
-                        Realizada_em = DateTime.Now  
-                    };
 
-                    statement.UltimasTransacoes.Add(newTransaction);
-
-                    var orderedTransactions = statement.UltimasTransacoes.OrderByDescending(x => x.Realizada_em).Take(10).ToList();
-
-                    var newStatemnt = new StatementDto
-                    {
-                        Saldo = new BalanceDto
-                        {
-                            Data_extrato = DateTime.Now,
-                            Limite = limit,
-                            Total = balance + value
-                        },
-                        UltimasTransacoes = orderedTransactions
-                    };
-
-                    var updatedTransactionsJson = JsonSerializer.Serialize(newStatemnt, AppJsonSerializerContext.Default.StatementDto);
-
-                    var updated = await AppDbContext.TryUpdateBalance(context, id, value, updatedTransactionsJson);
+                    var updated = await AppDbContext.TryUpdateBalance(context, id, value, JsonSerializer.Serialize(statement, AppJsonSerializerContext.Default.StatementDto));
 
                     if (!updated)
                         return Results.UnprocessableEntity();
@@ -97,21 +71,25 @@ namespace RinhaDeBackEnd_AOT.Endpoints
 
                 if (customer == null) return Results.NotFound();
 
-                if (customer.LastStatement is null)
-                {
-                    return Results.Ok(new StatementDto { 
-                        Saldo = new BalanceDto { 
-                            Data_extrato = DateTime.Now, 
-                            Limite = customer.Limit, 
-                            Total = customer.Balance}, 
-                        UltimasTransacoes = new List<TransactionDto>() 
-                    });
-                }
+                StatementDto? statement = customer.LastStatement != null
+                 ? JsonSerializer.Deserialize<StatementDto>(customer.LastStatement, AppJsonSerializerContext.Default.StatementDto)
+                 : new StatementDto
+                 {
+                     Saldo = new BalanceDto
+                     {
+                         Limite = customer.Limit,
+                         Total = customer.Balance
+                     }
+                 };
 
-                return Results.Content(customer.LastStatement.ToLower(), "application/json");
+                return Results.Ok(statement);
             }).DisableRequestTimeout();
 
             return group;
         }
+
+        // **Helper method for concise statement deserialization:**
+        static StatementDto DeserializeStatement(string? json) =>
+            string.IsNullOrEmpty(json) ? new StatementDto() : JsonSerializer.Deserialize<StatementDto>(json, AppJsonSerializerContext.Default.StatementDto);
     }
 }
