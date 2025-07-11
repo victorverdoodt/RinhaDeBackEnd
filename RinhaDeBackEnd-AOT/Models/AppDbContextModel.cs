@@ -6,7 +6,7 @@ using RinhaDeBackEnd_AOT.Infra.Contexts;
 #pragma warning disable 219, 612, 618
 #nullable disable
 
-namespace RinhaDeBackEnd_AOT.Models
+namespace RinhaDeBackEndAOT.Models
 {
     [DbContext(typeof(AppDbContext))]
     public partial class AppDbContextModel : RuntimeModel
@@ -35,7 +35,7 @@ namespace RinhaDeBackEnd_AOT.Models
             }
 
             model.Customize();
-            _instance = model;
+            _instance = (AppDbContextModel)model.FinalizeModel();
         }
 
         private static AppDbContextModel _instance;

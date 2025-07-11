@@ -1,18 +1,9 @@
--- Criação da tabela Customers
-CREATE UNLOGGED TABLE "Customers" (
-    "Id" SERIAL PRIMARY KEY,
-    "Name" VARCHAR(255) NOT NULL,
-    "Balance" INT NOT NULL,
-    "Limit" INT NOT NULL,
-    "LastStatement" TEXT
+CREATE UNLOGGED TABLE "Transactions" (
+    "Id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "Amout" NUMERIC(18,2) NOT NULL,
+    "requestedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    "Gateway" INT NOT NULL
 );
 
--- Inserção de dados na tabela Customers
-INSERT INTO "Customers" ("Name", "Balance", "Limit")
-VALUES
-    ('o barato sai caro', 0, 1000 * 100),
-    ('zan corp ltda', 0, 800 * 100),
-    ('les cruders', 0, 10000 * 100),
-    ('padaria joia de cocaia', 0, 100000 * 100),
-    ('kid mais', 0, 5000 * 100);
-
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transactions_gateway_requestedat
+ON "Transactions" ("Gateway", "requestedAt");

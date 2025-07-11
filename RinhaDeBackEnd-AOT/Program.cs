@@ -1,10 +1,15 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RinhaDeBackEnd_AOT.Dto;
 using RinhaDeBackEnd_AOT.Endpoints;
 using RinhaDeBackEnd_AOT.Infra.Contexts;
 using RinhaDeBackEnd_AOT.Infra.Entities;
+using RinhaDeBackEnd_AOT.Infra.Interfaces;
 using RinhaDeBackEnd_AOT.Middlewares;
-using RinhaDeBackEnd_AOT.Models;
+using RinhaDeBackEnd_AOT.Services;
+using RinhaDeBackEndAOT.Models;
+using StackExchange.Redis;
+using System.Net;
 using System.Text.Json.Serialization;
 
 namespace RinhaDeBackEnd_AOT
@@ -15,12 +20,22 @@ namespace RinhaDeBackEnd_AOT
         {
             var builder = WebApplication.CreateSlimBuilder(args);
 
+            ServicePointManager.Expect100Continue = false; // less headers
+            ServicePointManager.UseNagleAlgorithm = false; // less latency
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+               ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+            builder.Logging.SetMinimumLevel(LogLevel.Error);
+
             builder.Services.ConfigureHttpJsonOptions(options =>
             {
                 options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
             });
 
             builder.Services.Configure<RouteHandlerOptions>(o => { o.ThrowOnBadRequest = true; });
+
+            builder.Services.AddHttpClient<IPaymentGatewayService, PaymentGatewayService>();
 
             var ConnectionString = Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -31,7 +46,13 @@ namespace RinhaDeBackEnd_AOT
                 .UseModel(AppDbContextModel.Instance)
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             );
-            
+
+            int workerCount = builder.Configuration.GetValue<int>("Workers:Count", 10);
+            for (int i = 0; i < workerCount; i++)
+            {
+                builder.Services.AddHostedService<PaymentQueueWorker>();
+            }
+
             var app = builder.Build();
             app.UseMiddleware<BadHttpRequestExceptionMiddleware>();
             app.MapClientEndpoint();
@@ -40,12 +61,14 @@ namespace RinhaDeBackEnd_AOT
         }
     }
 
-    [JsonSerializable(typeof(Customer))]
-    [JsonSerializable(typeof(TransactionDto))]
-    [JsonSerializable(typeof(StatementDto))]
-    [JsonSerializable(typeof(BalanceDto))]
-    [JsonSerializable(typeof(RespondeDto))]
-    [JsonSerializable(typeof(CustomerInfoDto))]
+    [JsonSerializable(typeof(Transaction))]
+    [JsonSerializable(typeof(MetricsResponse))]
+    [JsonSerializable(typeof(ApiPaymentRequest))]
+    [JsonSerializable(typeof(ExternalGatewayRequest))]
+    [JsonSerializable(typeof(ProblemDetails))]
+    [JsonSerializable(typeof(String))]
+    [JsonSerializable(typeof(HealthResponse))]
+    [JsonSerializable(typeof(QueuedPaymentRequest))]
     internal partial class AppJsonSerializerContext : JsonSerializerContext
     {
 

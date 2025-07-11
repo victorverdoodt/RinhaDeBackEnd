@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace RinhaDeBackEnd_AOT.Middlewares
+﻿namespace RinhaDeBackEnd_AOT.Middlewares
 {
     public class BadHttpRequestExceptionMiddleware(RequestDelegate next)
     {
