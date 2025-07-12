@@ -47,6 +47,8 @@ namespace RinhaDeBackEnd_AOT
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             );
 
+            builder.Services.AddHostedService<WarmUpHostedService>();
+
             int workerCount = builder.Configuration.GetValue<int>("Workers:Count", 10);
             for (int i = 0; i < workerCount; i++)
             {
