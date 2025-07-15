@@ -30,7 +30,7 @@ namespace RinhaDeBackEnd_AOT.Endpoints
                 var item = new QueuedPaymentRequest(dto.CorrelationId, dto.Amount, DateTime.UtcNow);
                 var payload = JsonSerializer.Serialize(item, jsonSerializerOptions);
 
-                await db.ListRightPushAsync("payments:queue", payload);
+                await db.ListRightPushAsync("payments:queue", payload, flags: CommandFlags.FireAndForget);
 
                 return Results.Accepted();
             }).DisableRequestTimeout();

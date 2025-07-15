@@ -14,7 +14,6 @@ namespace RinhaDeBackEnd_AOT.Services
         private readonly string _fallbackUrl;
 
         private readonly IAsyncPolicy<int> _policy;
-        private ExternalGatewayRequest? _lastRequest;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public PaymentGatewayService(HttpClient httpClient, IConfiguration config)
@@ -31,7 +30,6 @@ namespace RinhaDeBackEnd_AOT.Services
 
             var timeoutPolicy = Policy.TimeoutAsync<int>(2, TimeoutStrategy.Pessimistic);
 
-            // Retry 1 vez antes de fallback
             var retryPolicy = Policy
                 .Handle<Exception>()
                 .Or<TimeoutRejectedException>()
@@ -41,12 +39,18 @@ namespace RinhaDeBackEnd_AOT.Services
                 .Handle<Exception>()
                 .Or<TimeoutRejectedException>()
                 .FallbackAsync(
-                    fallbackAction: async (ct) =>
+                    fallbackAction: async (delegateResult, context, ct) => // O contexto é passado aqui
                     {
-                        var content = new StringContent(JsonSerializer.Serialize(_lastRequest, _jsonSerializerOptions), Encoding.UTF8, "application/json");
+                        var requestForFallback = (ExternalGatewayRequest)context["request"];
+                        var content = new StringContent(JsonSerializer.Serialize(requestForFallback, _jsonSerializerOptions), Encoding.UTF8, "application/json");
                         var response = await _httpClient.PostAsync(_fallbackUrl, content, ct);
                         response.EnsureSuccessStatusCode();
                         return 1;
+                    },
+                    onFallbackAsync: (delegateResult, context) =>
+                    {
+                        // Log que o fallback foi acionado
+                        return Task.CompletedTask;
                     });
 
             _policy = Policy.WrapAsync(fallbackPolicy, timeoutPolicy);
@@ -54,15 +58,17 @@ namespace RinhaDeBackEnd_AOT.Services
 
         public async Task<int> ProcessAsync(ExternalGatewayRequest request, CancellationToken cancellationToken = default)
         {
-            _lastRequest = request;
+            var context = new Context($"ProcessRequest-{request.CorrelationId}");
+            context["request"] = request;
 
-            return await _policy.ExecuteAsync(async ct =>
+            return await _policy.ExecuteAsync(async (ctx, ct) =>
             {
-                var content = new StringContent(JsonSerializer.Serialize(request, _jsonSerializerOptions), Encoding.UTF8, "application/json");
+                var currentRequest = (ExternalGatewayRequest)ctx["request"];
+                var content = new StringContent(JsonSerializer.Serialize(currentRequest, _jsonSerializerOptions), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(_primaryUrl, content, ct);
                 response.EnsureSuccessStatusCode();
                 return 0;
-            }, cancellationToken);
+            }, context, cancellationToken);
         }
     }
 }

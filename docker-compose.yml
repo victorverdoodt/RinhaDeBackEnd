@@ -28,15 +28,12 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.30"
-          memory: "110MB"
+          cpus: "0.475"
+          memory: "125MB"
 
   rinhadebackend-aot02:
     <<: *api 
     hostname: api02
-    depends_on:
-      rinhadebackend-aot:
-        condition: service_healthy
 
   nginx:
     image: nginx:latest
@@ -56,7 +53,7 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "15MB"
+          memory: "10MB"
 
   db:
     image: postgres:latest
@@ -81,12 +78,14 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "85MB"
+          memory: "70MB"
 
   redis:
     image: redis:7.2-alpine
     container_name: redis-cache
     hostname: redis
+    volumes:
+      - ./redis-conf/redis.conf:/usr/local/etc/redis/redis.conf
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -101,7 +100,7 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "30MB"
+          memory: "20MB"
 
 networks:
   backend:

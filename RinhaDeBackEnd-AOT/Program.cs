@@ -49,11 +49,9 @@ namespace RinhaDeBackEnd_AOT
 
             builder.Services.AddHostedService<WarmUpHostedService>();
 
-            int workerCount = builder.Configuration.GetValue<int>("Workers:Count", 10);
-            for (int i = 0; i < workerCount; i++)
-            {
-                builder.Services.AddHostedService<PaymentQueueWorker>();
-            }
+
+            builder.Services.AddHostedService<BatchPaymentQueueWorker>();
+            
 
             var app = builder.Build();
             app.UseMiddleware<BadHttpRequestExceptionMiddleware>();

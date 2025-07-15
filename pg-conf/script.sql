@@ -5,5 +5,4 @@ CREATE UNLOGGED TABLE "Transactions" (
     "Gateway" INT NOT NULL
 );
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transactions_gateway_requestedat
-ON "Transactions" ("Gateway", "requestedAt");
+CREATE INDEX idx_transactions_covering_stats ON "Transactions" ("requestedAt", "Gateway") INCLUDE ("Amout");
