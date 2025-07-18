@@ -1,7 +1,7 @@
 ﻿using RinhaDeBackEnd_AOT.Domain.Interfaces;
 using RinhaDeBackEnd_AOT.Domain.Models;
 using RinhaDeBackEnd_AOT.Infrastructure.Interfaces;
-using RinhaDeBackEnd_AOT.Worker.Models; // <-- IMPORTANTE: Adicione o using para ProcessedItem
+using RinhaDeBackEnd_AOT.Worker.Models;
 using StackExchange.Redis;
 using System.Data;
 using System.Text.Json;
