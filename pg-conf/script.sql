@@ -1,8 +1,9 @@
 CREATE UNLOGGED TABLE "Transactions" (
-    "Id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "Amout" NUMERIC(18,2) NOT NULL,
-    "requestedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    "Gateway" INT NOT NULL
+    "Id" UUID PRIMARY KEY,
+    "Amount" DECIMAL NOT NULL,
+    "requestedAt" TIMESTAMP NOT NULL,
+    "Gateway" SMALLINT NOT NULL,
+    "Status" SMALLINT NOT NULL DEFAULT 0
 );
 
-CREATE INDEX idx_transactions_covering_stats ON "Transactions" ("requestedAt", "Gateway") INCLUDE ("Amout");
+CREATE INDEX IX_Transactions_Summary_Covering ON "Transactions" ("Status", "Gateway", "requestedAt") INCLUDE ("Amount");

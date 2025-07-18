@@ -1,6 +1,6 @@
-﻿using RinhaDeBackEnd_AOT.Dto;
+﻿using RinhaDeBackEnd_AOT.Domain.Models;
 
-namespace RinhaDeBackEnd_AOT.Infra.Interfaces
+namespace RinhaDeBackEnd_AOT.Domain.Interfaces
 {
     public interface IPaymentGatewayService
     {

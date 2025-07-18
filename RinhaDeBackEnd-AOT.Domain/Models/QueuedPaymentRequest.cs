@@ -1,4 +1,4 @@
-﻿namespace RinhaDeBackEnd_AOT.Dto
+﻿namespace RinhaDeBackEnd_AOT.Domain.Models
 {
     public record QueuedPaymentRequest(
         Guid CorrelationId,

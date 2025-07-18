@@ -5,7 +5,8 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "rinhadebackend": "StartDebugging",
-        "rinhadebackend-aot": "StartDebugging"
+        "rinhadebackend-aot": "StartDebugging",
+        "rinhadebackend-aot.worker": "StartDebugging"
       }
     }
   }

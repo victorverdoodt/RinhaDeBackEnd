@@ -7,3 +7,10 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
     ports:
       - "8080"
+
+  rinhadebackend-aot.worker:
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

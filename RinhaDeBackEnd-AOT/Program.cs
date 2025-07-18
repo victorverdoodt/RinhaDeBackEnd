@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RinhaDeBackEnd_AOT.Domain.Models;
 using RinhaDeBackEnd_AOT.Dto;
 using RinhaDeBackEnd_AOT.Endpoints;
-using RinhaDeBackEnd_AOT.Infra.Contexts;
-using RinhaDeBackEnd_AOT.Infra.Entities;
-using RinhaDeBackEnd_AOT.Infra.Interfaces;
-using RinhaDeBackEnd_AOT.Middlewares;
+using RinhaDeBackEnd_AOT.Infrastructure.Factories;
+using RinhaDeBackEnd_AOT.Infrastructure.Interfaces;
 using RinhaDeBackEnd_AOT.Services;
-using RinhaDeBackEndAOT.Models;
 using StackExchange.Redis;
 using System.Net;
 using System.Text.Json.Serialization;
@@ -20,11 +18,18 @@ namespace RinhaDeBackEnd_AOT
         {
             var builder = WebApplication.CreateSlimBuilder(args);
 
-            ServicePointManager.Expect100Continue = false; // less headers
-            ServicePointManager.UseNagleAlgorithm = false; // less latency
+            ServicePointManager.Expect100Continue = false;
+            ServicePointManager.UseNagleAlgorithm = false;
+
+            builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
                ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+            builder.Services.AddSingleton<IngestionChannel>();
+
+            // Registra nosso novo worker para rodar em segundo plano
+            builder.Services.AddHostedService<RedisBatchPusherWorker>();
 
             builder.Logging.SetMinimumLevel(LogLevel.Error);
 
@@ -33,28 +38,7 @@ namespace RinhaDeBackEnd_AOT
                 options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
             });
 
-            builder.Services.Configure<RouteHandlerOptions>(o => { o.ThrowOnBadRequest = true; });
-
-            builder.Services.AddHttpClient<IPaymentGatewayService, PaymentGatewayService>();
-
-            var ConnectionString = Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-            var configuration = builder.Configuration;
-            builder.Services.AddDbContextPool<AppDbContext>(options =>
-                options.UseNpgsql(ConnectionString)
-                .EnableThreadSafetyChecks(false)
-                .UseModel(AppDbContextModel.Instance)
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
-            );
-
-            builder.Services.AddHostedService<WarmUpHostedService>();
-
-
-            builder.Services.AddHostedService<BatchPaymentQueueWorker>();
-            
-
             var app = builder.Build();
-            app.UseMiddleware<BadHttpRequestExceptionMiddleware>();
             app.MapClientEndpoint();
 
             app.Run();
