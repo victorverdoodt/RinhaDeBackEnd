@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using RinhaDeBackEnd_AOT.Domain.Models;
 using RinhaDeBackEnd_AOT.Dto;
@@ -8,6 +9,7 @@ using RinhaDeBackEnd_AOT.Infrastructure.Interfaces;
 using RinhaDeBackEnd_AOT.Services;
 using StackExchange.Redis;
 using System.Net;
+using System.Runtime;
 using System.Text.Json.Serialization;
 
 namespace RinhaDeBackEnd_AOT

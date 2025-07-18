@@ -2,7 +2,7 @@
 {
     public class Transaction
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid CorrelationId { get; set; } = Guid.NewGuid();
         public decimal Amount { get; set; }
         public DateTime requestedAt { get; set; } = DateTime.UtcNow;
         public int Gateway { get; set; }
