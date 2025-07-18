@@ -20,8 +20,6 @@ namespace RinhaDeBackEnd_AOT.Worker
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
                ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 
-            builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
-
             builder.Services.AddResiliencePipeline<string, int>("gateway-pipeline", (pipelineBuilder, context) =>
             {
                 var config = context.ServiceProvider.GetRequiredService<IConfiguration>();

@@ -40,48 +40,66 @@ namespace RinhaDeBackEnd_AOT.Endpoints
             }).DisableRequestTimeout();
 
             endpoints.MapGet("payments-summary", async (
-                [FromServices] IDbConnectionFactory dbFactory,
+                [FromServices] IConnectionMultiplexer redis,
                 [FromQuery] DateTime? from = null,
                 [FromQuery] DateTime? to = null) =>
             {
-                const string sql = @"
-                    SELECT
-                        ""Gateway"",
-                        COUNT(*) AS ""TotalRequests"",
-                        SUM(""Amount"") AS ""TotalAmount""
-                    FROM ""Transactions""
-                    WHERE ""Status"" = 1
-                      AND (@from IS NULL OR ""requestedAt"" >= @from)
-                      AND (@to IS NULL OR ""requestedAt"" <= @to)
-                    GROUP BY ""Gateway""";
+                var db = redis.GetDatabase();
 
-                var parameters = new DynamicParameters();
+                // 1. BUSCA TUDO PARA A MEMÓRIA
+                var allPaymentHashes = await db.HashGetAllAsync("payments");
 
-                parameters.Add("from", from, DbType.DateTime);
-                parameters.Add("to", to, DbType.DateTime);
+                if (allPaymentHashes.Length == 0)
+                {
+                    return Results.Ok(new MetricsResponse(new GatewayStats(0, 0.0m), new GatewayStats(0, 0.0m)));
+                }
 
-                using var connection = await dbFactory.CreateConnectionAsync();
+                var summary = new Dictionary<string, GatewayStats>
+                {
+                    ["default"] = new GatewayStats(0, 0.0m),
+                    ["fallback"] = new GatewayStats(0, 0.0m),
+                };
 
-                var stats = await connection.QueryAsync<GatewayStatsResult>(sql, parameters);
+                // 2. FILTRA E AGREGA NA MEMÓRIA DA APLICAÇÃO
+                foreach (var hashEntry in allPaymentHashes)
+                {
+                    try
+                    {
+                        var entry = JsonSerializer.Deserialize<RedisPaymentEntry>(hashEntry.Value!, AppJsonSerializerContext.Default.RedisPaymentEntry);
+                        if (entry == null) continue;
 
-                var response = new MetricsResponse(
-                    Default: stats.FirstOrDefault(x => x.Gateway == 0)?.ToRecord() ?? new GatewayStats(0, 0),
-                    Fallback: stats.FirstOrDefault(x => x.Gateway == 1)?.ToRecord() ?? new GatewayStats(0, 0)
-                );
+                        // Filtro de data
+                        if (from.HasValue && entry.RequestedAt < from.Value) continue;
+                        if (to.HasValue && entry.RequestedAt > to.Value) continue;
 
+                        // Agregação
+                        var currentStats = summary[entry.Processor];
+                        summary[entry.Processor] = currentStats with // Usa a sintaxe `with` para criar um novo record imutável
+                        {
+                            TotalRequests = currentStats.TotalRequests + 1,
+                            TotalAmount = currentStats.TotalAmount + entry.Amount
+                        };
+                    }
+                    catch (JsonException)
+                    {
+                        // Ignora entradas com JSON malformado
+                        continue;
+                    }
+                }
+
+                var response = new MetricsResponse(summary["default"], summary["fallback"]);
                 return Results.Ok(response);
             }).DisableRequestTimeout();
 
 
-            endpoints.MapPost("/purge-payments", async ([FromServices] IDbConnectionFactory dbFactory) =>
+            endpoints.MapPost("/purge-payments", async ([FromServices] IConnectionMultiplexer redis) =>
             {
-                const string sql = @"TRUNCATE ""Transactions"" RESTART IDENTITY CASCADE;";
+                var db = redis.GetDatabase();
 
-                using var connection = await dbFactory.CreateConnectionAsync();
+                // Deleta o Hash de pagamentos e a fila
+                await db.KeyDeleteAsync(new RedisKey[] { "payments", "payments:queue" });
 
-                await connection.ExecuteAsync(sql);
-
-                return Results.Ok("Database purged.");
+                return Results.Ok("Payments hash and queue purged.");
             });
 
 

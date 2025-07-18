@@ -21,8 +21,6 @@ namespace RinhaDeBackEnd_AOT
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
-            builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
-
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
                ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 
@@ -53,6 +51,7 @@ namespace RinhaDeBackEnd_AOT
     [JsonSerializable(typeof(String))]
     [JsonSerializable(typeof(HealthResponse))]
     [JsonSerializable(typeof(QueuedPaymentRequest))]
+    [JsonSerializable(typeof(RedisPaymentEntry))]
     internal partial class AppJsonSerializerContext : JsonSerializerContext
     {
 
